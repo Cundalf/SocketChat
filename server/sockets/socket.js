@@ -18,11 +18,12 @@ io.on('connection', (client) => {
 
         client.join(data.sala);
         
-        let personas = usuarios.AgregarPersona(client.id, data.nombre, data.sala);
+        usuarios.AgregarPersona(client.id, data.nombre, data.sala);
 
         client.broadcast.to(data.sala).emit('listaPersonas', usuarios.GetPersonasPorSala(data.sala));
+        client.broadcast.to(data.sala).emit('crearMensaje', CrearMensaje('Sistema', `${data.nombre} se unió`));
 
-        callback(personas);
+        callback(usuarios.GetPersonasPorSala(data.sala));
     });
 
     client.on('disconnect', () => {
@@ -32,10 +33,12 @@ io.on('connection', (client) => {
         client.broadcast.to(personaBorrada.sala).emit('listaPersonas', usuarios.GetPersonasPorSala(personaBorrada.sala));
     });
     
-    client.on('crearMensaje', (data) => {
+    client.on('crearMensaje', (data, callback) => {
         let persona = usuarios.GetPersona(client.id);
         let mensaje = CrearMensaje(persona.nombre, data.mensaje);
         client.broadcast.to(persona.sala).emit('crearMensaje', mensaje);
+        
+        callback(mensaje);
     });
     
     // Mensajes privados
